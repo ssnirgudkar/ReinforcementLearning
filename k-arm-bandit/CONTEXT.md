@@ -18,9 +18,3 @@ Produces `figure_2_2.png` — two-panel plot matching Figure 2.2 from the book:
 - Top: average reward over 1000 steps for ε = 0, 0.01, 0.1
 - Bottom: % optimal action chosen over 1000 steps for ε = 0, 0.01, 0.1
 
-## What's next (Ch.2 remaining topics)
-
-- Non-stationary bandits: constant step-size α instead of sample averages
-- Optimistic initial values
-- Upper-Confidence-Bound (UCB) action selection
-- Gradient bandit algorithms
