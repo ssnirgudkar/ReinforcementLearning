@@ -35,6 +35,8 @@ else:
 ### Incremental update (stationary)
 ```
 Q_(n+1) = Q_n + (1/n) * (R_n - Q_n)
+R_n is reward obtained from the environment
+Q_n is the action estimate for the action a, calculated by the agent (us).
 ```
 
 ### Constant step-size update (non-stationary)
@@ -104,6 +106,44 @@ UCB vs epsilon-greedy (ε = 0.1), over 1000 steps and 2000 runs:
 
 ![UCB vs epsilon-greedy](k_arm_bandit_ucb.png)
 
+### 5. Gradient Bandit (`k_arm_bandit_gradient_descent.py`)
+
+Instead of estimating action values, the gradient bandit algorithm learns a **preference** H_t(a) for each action. Only relative preferences matter — absolute values are meaningless. Actions are selected via the softmax distribution:
+
+```
+π_t(a) = exp(H_t(a)) / Σ_b exp(H_t(b))
+```
+
+Preferences are updated via stochastic gradient **ascent** after each step:
+
+```
+H_{t+1}(A_t) = H_t(A_t) + α(R_t - R̄_t)(1 - π_t(A_t))   # chosen action
+H_{t+1}(a)   = H_t(a)   - α(R_t - R̄_t) π_t(a)            # all other actions
+```
+
+R̄_t is the **baseline** — a running average of all rewards received so far. If R_t > R̄_t the chosen action's preference increases; if R_t < R̄_t it decreases. All other preferences shift in the opposite direction. All preferences are initialised to 0; at t=0 an arm is chosen at random.
+
+**Effect of baseline — reward mean μ = 0**
+
+With reward means near 0, R̄_t stays close to 0 regardless, so the baseline has a smaller effect.
+
+![Gradient bandit, α=0.1, μ=0](k_arm_bandit_gradient_descent_optimal_action_0.1_mean_0.png)
+![Gradient bandit, α=0.4, μ=0](k_arm_bandit_gradient_descent_optimal_action_0.4_mean_0.png)
+
+**Effect of baseline — reward mean μ = 4**
+
+When reward means are shifted to μ = 4, the baseline becomes critical. Without it, the elevated absolute reward inflates all preference updates indiscriminately, and the algorithm converges more slowly or to a suboptimal policy.
+
+![Gradient bandit, α=0.1, μ=4](k_arm_bandit_gradient_descent_optimal_action_0.1_mean_4.png)
+![Gradient bandit, α=0.4, μ=4](k_arm_bandit_gradient_descent_optimal_action_0.4_mean_4.png)
+
+**Bug reference — baseline and preference updates both disabled**
+
+The plots below show a faulty implementation where neither the baseline nor the preferences were updated after each step (the intent was only to disable the baseline). The algorithm degenerates to near-random action selection.
+
+![Bug α=0.1](k_arm_bandit_gradient_descent_optimal_action_0.1_bug_no_update_baseline_and_pref.png)
+![Bug α=0.4](k_arm_bandit_gradient_descent_optimal_action_0.4_bug_no_update_baseline_and_pref.png)
+
 ---
 
 ## How to Run
@@ -120,6 +160,9 @@ python k_arm_bandit_optimistic_initial_value.py
 
 # Upper confidence bound
 python k_arm_bandit_upper_confidence_bound.py
+
+# Gradient bandit
+python k_arm_bandit_gradient_descent.py
 ```
 
 Dependencies: `numpy`, `matplotlib`
